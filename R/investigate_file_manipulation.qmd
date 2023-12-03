@@ -1,0 +1,741 @@
+---
+title: "Investigation of file manipulation in R"
+author: "Oliver Hauke"
+date: today
+date-format: DD.MM.YYYY
+format: 
+  html:
+    code-fold: true
+editor: visual
+cache: true
+---
+
+<!--  To learn more about Quarto see https://quarto.org. -->
+
+## Setup
+
+### Packages
+
+```{r pkgs}
+library(dplyr)
+library(here)
+library(ggplot2)
+library(ggrepel)
+library(rio)
+library(data.table)
+library(tibble)
+library(dbplyr)
+library(tidyr)
+library(forcats)
+options(dplyr.summarise.inform = FALSE)
+```
+
+### Functions
+
+```{r eval_fun}
+eval_cmd = function(cmd, loc = here::here()){
+  
+  name = paste(deparse(cmd), collapse="")
+  
+  # Status vor Befehl
+  f0 = list.files(loc, recursive = TRUE, full.names = TRUE)
+  m0 = as.numeric(object.size(ls()))
+  t0 = Sys.time()
+  
+  # Anwendung des Befehls
+  eval(cmd, envir = .GlobalEnv)
+  
+  
+  # Status nach Befehl
+  t1 = Sys.time()
+  f1 = list.files(loc, recursive = TRUE, full.names = TRUE)
+  m1 = as.numeric(object.size(ls()))
+  
+  # Aenderungen
+  t_delta = t1 - t0 
+  f_delta = setdiff(f1, f0)
+  d_delta = sum(file.size(f_delta)) 
+  m_delta = m1 - m0
+  
+  # Ausgabe
+  output = list()
+  output[['fun']]        = stringr::str_remove_all(name, "\\(.*")
+  output[['time']]       = as.numeric(t1 - t0) #/ 6e1 # in min
+  output[['disk_delta']] = d_delta             / 1e6 # in MB
+  output[['mem_delta']]  = m_delta             / 1e6 # in MB
+  output[['new_files']]  = f_delta
+  output[['out_class']]  = sapply(f_delta, function(file) tools::file_ext(file), USE.NAMES = FALSE)
+  output[['args']]       = stringr::str_extract_all(name, "\\(.*\\)")[[1]] 
+  output[['cmd']]        = paste(deparse(cmd), collapse="")
+  output
+}
+```
+
+### Data 
+
+Get data from the Package `nycflights13` and save it as csv in the folder `data`.
+
+```{r get-data-0, include = FALSE}
+#| code-fold: false
+dat <- nycflights13::flights
+fwrite(
+  dat, here('data/flights.csv'), 
+  row.names = FALSE)
+str(dat)
+```
+
+
+
+## Comparison for nycflights
+
+```{r get-data}
+
+dir = here('data/flights_out')
+dat = nycflights13::flights
+```
+
+```{r datasize}
+set.seed(1234)
+#ind = sample(1:nrow(dat), 6.129e4, replace = TRUE); dat = dat[ind,]
+```
+
+
+### Writing to disk
+
+
+```{r ex_write}
+#| cache: true
+rm(list = setdiff(ls(), c("dat", "dir", "eval_cmd", "cmds"))); gc()
+
+cmds = c(
+  expr(write.csv2(dat, file.path(dir, "baser.csv"), row.names = FALSE)), 
+  expr(save(dat, file = file.path(dir, "RData.RData"))),
+  expr(saveRDS(dat, file = file.path(dir, "RDS.rds"))),
+  expr(readr::write_csv2(dat, file.path(dir, "readr.csv"))),
+  expr(data.table::fwrite(dat, file.path(dir, "DT.csv"), sep =";")),
+  expr(fst::write.fst(dat, file.path(dir, "fst.fst"), compress = 50)),
+  expr(write.csv2(dat, file = gzfile(file.path(dir, 'basergz.csv.gz')), row.names = F)),
+  expr(readr::write_csv2(dat, file.path(dir, "readrgz.csv.gz"))),
+  expr(data.table::fwrite(dat, file.path(dir, "DT.csv.gz"))),
+  expr(qs::qsave(dat, file.path(dir,'qs.qs'))),
+  expr(feather::write_feather(dat,file.path(dir,'feat.feather'))),
+  expr(arrow::write_parquet(dat,file.path(dir,'par.parquet'))),
+  
+  expr({
+    con = DBI::dbConnect(RSQLite::SQLite(), file.path(dir, "db.sqlite"))
+    DBI::dbWriteTable(con, "dat", as.data.frame(dat))
+    DBI::dbDisconnect(con, shutdown = TRUE)
+  }),
+  
+  expr({
+    con = DBI::dbConnect(duckdb::duckdb(), file.path(dir, "db.duckdb"))
+    DBI::dbWriteTable(con, "dat", as.data.frame(dat))
+    DBI::dbDisconnect(con, shutdown = TRUE)
+  }),
+  
+  expr(rio::export(dat, file.path(dir,'rio.csv'))),
+  expr(rio::export(dat, file.path(dir,'rio.psv'))),
+  expr(rio::export(dat, file.path(dir,'rio.tsv'))),
+  expr(rio::export(dat, file.path(dir,'rio.sas7bdat'))),
+  expr(rio::export(dat, file.path(dir,'rio.xpt'))),
+  expr(rio::export(dat, file.path(dir,'rio.sav'))),
+  expr(rio::export(dat, file.path(dir,'rio.zsav'))),
+  expr(rio::export(dat, file.path(dir,'rio.dta'))),
+  expr(rio::export(dat, file.path(dir,'rio.xlsx'))),
+  expr(rio::export(dat, file.path(dir,'rio.rds'))),
+  expr(rio::export(dat, file.path(dir,'rio.qs'))),
+  #expr(rio::export(dat, file.path(dir,'rio.dbf'))),
+  #expr(rio::export(dat, file.path(dir,'rio.arff'))),
+  #expr(rio::export(dat, file.path(dir,'rio.fwf'))),
+  expr(rio::export(dat, file.path(dir,'rio.csv.gz'))),
+  expr(rio::export(dat, file.path(dir,'rio.parquet'))),
+  expr(rio::export(dat, file.path(dir,'rio.feather'))),
+  expr(rio::export(dat, file.path(dir,'rio.fst')))
+  #expr(rio::export(dat, file.path(dir,'rio.json'))),
+  #expr(rio::export(dat, file.path(dir,'rio.mat'))),
+  #expr(rio::export(dat, file.path(dir,'rio.ods'))),
+  #expr(rio::export(dat, file.path(dir,'rio.xml'))),
+  #expr(rio::export(dat, file.path(dir,'rio.html')))
+)
+
+# gz over zip, s. https://stackoverflow.com/questions/38487628/how-do-i-zip-a-csv-file-and-write-that-zipped-file-to-a-folder-using-r
+
+# reset output directory
+unlink(dir, recursive = TRUE); dir.create(dir)#; eval_op(cmds[[1]])
+
+# apply cmds
+result = lapply(cmds, eval_cmd)
+```
+
+
+```{r ex_write_out}
+# show results
+res_tab = result %>%
+  rbindlist() %>%
+  #lapply(as_tibble) %>%
+  #{do.call(rbindlist, .)} %>% 
+  relocate(out_class, .after = fun) %>%
+  arrange(time) %>% 
+  mutate(method = paste0(fun, "(", out_class,")"),
+         method = ifelse(grepl("sqlite", method), "sqlite", method),
+         method = ifelse(grepl("duckdb", method), "duckdb", method)
+         )
+  
+
+res_tab  %>% 
+  filter(!grepl("rio", fun)) %>%
+  ggplot(aes(x = time, y = disk_delta#, color = method
+             )) +
+  geom_point() +
+    geom_text_repel(
+    label= res_tab[which(!grepl("rio", res_tab$fun)),'method'][[1]], 
+    nudge_x = 1,
+    max.overlaps = 20
+  ) + labs(title = "Comparison of export functions")
+
+res_tab  %>% 
+  filter(grepl("rio", fun)) %>%
+  ggplot(aes(x = time, y = disk_delta#, color = method
+             )) +
+  geom_point() +
+    geom_text_repel(
+    label= stringr::str_remove_all(res_tab[which(grepl("rio", res_tab$fun)),'method'][[1]], "rio::export\\(|\\)"), 
+    nudge_x = 1,
+    max.overlaps = 20
+    #, nudge_y = 1, check_overlap = T
+  ) + labs(title = "rio::export for different file types", y = "disk_space")
+
+
+data.table::fwrite(
+  mutate(res_tab, across(where(is.numeric),.fns = ~ round(.x, 4)))
+  , here("data/result_export.csv"), sep = ";")
+
+res_tab %>% arrange(grepl("rio", fun)) %>% select(-new_files, -args, - cmd,- fun, -out_class) %>% relocate(method)
+```
+
+
+
+```{r}
+res_tab  %>% 
+  #filter(!grepl("rio", fun)) %>%
+  ggplot(aes(x = time, y = disk_delta#, color = method
+             )) +
+  geom_point() +
+    geom_text_repel(
+    label= res_tab[,'method'][[1]], 
+    nudge_x = 1,
+    max.overlaps = 20
+  ) + labs(title = "Comparison of export functions")
+res_ex = res_tab
+```
+
+
+### Reading (direct)
+
+
+
+```{r im-eval}
+#| cache: true
+#eval(expr(write.csv2(dat, here("data/flights.csv"), row.names = FALSE))) 
+
+files = list.files(dir, pattern = "rio", full.names = T)
+
+res = list()
+
+for (file in files[which(!grepl("db",files))]){
+  rm(dat)
+  disk = file.size(file) /1e6
+  t0  <- Sys.time()
+  dat <- import(file, setclass = "data.table")
+  t1  <- Sys.time()
+  mem <- as.numeric(object.size(dat)) / 1e6
+  
+  r = list(file = file, time = as.numeric(t1-t0), mem = mem, disk = disk)
+  res[[length(res) + 1]] = r
+}
+
+{ # sqlite
+  rm(dat)
+  file = file.path(dir, "db.sqlite")
+  disk = file.size(file) /1e6
+  t0  <- Sys.time()
+  con = DBI::dbConnect(RSQLite::SQLite(), file)
+  dat = tbl(con, "dat")
+  DBI::dbDisconnect(con, shutdown = TRUE)
+  t1  <- Sys.time()
+  mem <- as.numeric(object.size(dat)) / 1e6
+  r = list(file = file, time = as.numeric(t1-t0), mem = mem, disk = disk)
+  res[[length(res) + 1]] = r
+}
+
+
+{ # duckdb
+  rm(dat)
+  file = file.path(dir, "db.duckdb")
+  disk = file.size(file) / 1e6
+  t0  <- Sys.time()
+  con = DBI::dbConnect(duckdb::duckdb(), file)
+  dat = tbl(con, "dat")
+  DBI::dbDisconnect(con, shutdown = TRUE)
+  t1  <- Sys.time()
+  mem <- as.numeric(object.size(dat)) / 1e6
+  r = list(file = file, time = as.numeric(t1-t0), mem = mem, disk = disk)
+  res[[length(res) + 1]] = r
+}
+
+res <- res %>% lapply(as.data.table) %>% rbindlist() 
+res_im = res
+
+res_im %>% select(-file)
+```
+
+
+```{r}
+res <- res_im[, file := stringr::str_remove(basename(file), "rio\\.")][order(time)]
+
+
+res  %>% 
+  ggplot(aes(x = mem, y = time, color = disk)) +
+  geom_point() +
+    geom_text_repel(
+    label= res$file, 
+    nudge_x = 1,
+    max.overlaps = 20
+    #, nudge_y = 1, check_overlap = T
+  ) + labs(title = "Comparison of import file types")  
+
+
+
+
+data.table::fwrite(
+  mutate(res, across(where(is.numeric),.fns = ~ round(.x, 4)))
+  , here("data/result_import.csv"), sep = ";")
+
+print(res)
+
+```
+
+
+
+
+
+
+
+```{r io-speed-disk-in-124}
+#res = inner_join(rename(res_ex, file = new_files), res_im, by = "file", suffix = c("_export", "_import"))
+
+res  %>% 
+  ggplot(aes(x = disk, y = mem, color = time)) +
+  geom_point() +
+    geom_text_repel(
+    label= res$file, 
+    nudge_x = 1,
+    max.overlaps = 20
+    #, nudge_y = 1, check_overlap = T
+  ) + labs(title = "Comparison of import file types")  
+
+```
+
+
+```{r io-speed-mem}
+
+#res = inner_join(rename(res_ex, file = new_files), res_im, by = "file", suffix = c("_export", "_import"))
+
+res  %>% 
+  ggplot(aes(x = disk, y = time, color = mem)) +
+  geom_point() +
+    geom_text_repel(
+    label= res$file, 
+    nudge_x = 1,
+    max.overlaps = 20
+    #, nudge_y = 1, check_overlap = T
+  ) + labs(title = "Comparison of import file types")  
+
+```
+
+
+
+
+#### Multi-Fread
+
+```{r}
+res_mp = list()
+
+for (n in 1:getDTthreads()){
+  rm(dat)
+  file = files[[1]]
+  disk = file.size(file) /1e6
+  t0  <- Sys.time()
+  dat <- fread(file, nThread = n)
+  t1  <- Sys.time()
+  mem <- as.numeric(object.size(dat)) / 1e6
+  
+  r = list(threads = n, time = as.numeric(t1-t0), mem = mem, disk = disk)
+  res_mp[[length(res_mp) + 1]] = r
+}
+```
+
+
+```{r fread_mp}
+res <- res_mp %>% lapply(as.data.table) %>% rbindlist() 
+
+res  %>% ggplot(aes(x = threads, y = time)) + geom_col() + 
+  ggtitle("Multi-Thread fread: time comparison")
+
+data.table::fwrite(
+  mutate(res, across(where(is.numeric),.fns = ~ round(.x, 4)))
+  , here("data/result_import.csv"), sep = ";")
+
+print(res)
+```
+
+
+### Reading (indirect)
+
+- DB
+- BigMatrix
+- Lazy Computing, only connection
+
+**Baseline**
+
+```{r ind-base}
+start = Sys.time()
+
+dat = fread(file.path(dir, "DT.csv"))
+
+out = dat[, sum(flight), by=list(year,month)]
+
+
+print(paste0(
+  "Object size: ", 
+  (object.size(dat)+ object.size(out))/1e6, " MB"))
+
+print(paste0('time: ', Sys.time() - start))
+```
+
+
+
+#### SQLite
+
+
+```{r rsql}
+start = Sys.time()
+
+
+con = DBI::dbConnect(RSQLite::SQLite(), file.path(dir, "db.sqlite"))
+
+tbl = tbl(con, "dat")
+
+out <- tbl %>% group_by(year, month) %>% 
+  summarise(n = sum(flight)) %>% collect()
+
+print(paste0(
+  "Object size: ", 
+  (object.size(tbl)+ object.size(out)) / 1e6, " MB"))
+
+DBI::dbDisconnect(con, shutdown = TRUE); rm(tbl)
+
+print(paste0('time: ', Sys.time() - start))
+
+#out
+```
+
+#### Duckdb
+
+
+```{r rduck}
+start = Sys.time()
+
+
+con = DBI::dbConnect(duckdb::duckdb(), file.path(dir, "db.duckdb"))
+
+tbl = tbl(con, "dat")
+
+out <- tbl %>% group_by(year, month) %>% 
+  summarise(n = sum(flight)) %>% collect()
+
+print(paste0(
+  "Object size: ", 
+  (object.size(tbl)+ object.size(out)) / 1e6, " MB"))
+
+DBI::dbDisconnect(con, shutdown = TRUE); rm(tbl)
+
+print(paste0('time: ', Sys.time() - start))
+
+#out
+```
+
+#### Big Matrix
+
+```{r}
+#y <- read.big.matrix("C:\\Users\\Deepanshu\\Documents\\Testing.csv", type = "integer", header=TRUE)
+#mat = bigmemory::read.big.matrix(file.path(dir, "DT.csv"))
+
+#x = bigmemory::as.matrix(mat)
+
+#x
+```
+
+### Read + Aggregation (+ LM?)
+
+**Aggregation**
+
+```{r}
+
+agg = dat[, sum(flight), by=list(year,month)]
+
+
+con = DBI::dbConnect(RSQLite::SQLite(), file.path(dir, "db.sqlite"))
+
+agg_db = tbl(con, "dat") %>% group_by(year, month) %>% 
+  summarise(n = sum(flight)) %>% collect()
+
+#print(paste0(
+#  "Object size: ", 
+#  (object.size(tbl)+ object.size(out)) / 1e6, " MB"))
+
+DBI::dbDisconnect(con, shutdown = TRUE)
+
+agg_db
+
+```
+
+
+
+
+
+
+**Linear Regression**
+
+```{r, include = FALSE}
+#model = dat[, as.list(coef(lm(flight ~ month + distance + air_time))), by = dest]
+#model
+```
+
+
+```{r, include = FALSE}
+con = DBI::dbConnect(
+  RSQLite::SQLite(), file.path(dir, "db.sqlite"))
+
+#agg_db = tbl(con, "dat") %>% group_by(year, month) %>% 
+#  summarise(n = sum(flight)) %>% collect()
+
+
+#tbl(con, "dat") %>% group_by(dest) %>%
+#  select(flight, month, distance, air_time) %>%
+#  linear_regression_db(flight)
+  
+
+#print(paste0(
+#  "Object size: ", 
+#  (object.size(tbl)+ object.size(out)) / 1e6, " MB"))
+
+DBI::dbDisconnect(con, shutdown = TRUE)
+
+#agg_db
+```
+
+
+```{r imagg-eval}
+#| cache: true
+#eval(expr(write.csv2(dat, here("data/flights.csv"), row.names = FALSE))) 
+
+files = list.files(dir, pattern = "rio", full.names = T)
+
+res = list()
+
+for (file in files[which(!grepl("db",files))]){
+  rm(dat)
+  disk = file.size(file) /1e6
+  t0  <- Sys.time()
+  dat <- import(file, setclass = "data.table")
+  t1  <- Sys.time()
+  agg = dat[, sum(flight), by=list(year,month)]
+  t2  <- Sys.time()
+  mem <- as.numeric(object.size(dat)) / 1e6
+  
+  r = list(file = file, time_im = as.numeric(t1-t0), time_agg = as.numeric(t2-t1), mem = mem, disk = disk)
+  res[[length(res) + 1]] = r
+}
+
+{ # sqlite
+  rm(dat)
+  file = file.path(dir, "db.sqlite")
+  disk = file.size(file) /1e6
+  
+  t0  <- Sys.time()
+  
+  con = DBI::dbConnect(RSQLite::SQLite(), file)
+  dat = tbl(con, "dat")
+  
+  t1  <- Sys.time()
+  
+  agg_db = tbl(con, "dat") %>% group_by(year, month) %>% 
+  summarise(n = sum(flight)) %>% collect()
+  
+  t2  <- Sys.time()
+  
+  DBI::dbDisconnect(con, shutdown = TRUE)
+  mem <- as.numeric(object.size(dat)) / 1e6
+  r = list(file = file, time_im = as.numeric(t1-t0), time_agg = as.numeric(t2-t1), mem = mem, disk = disk)
+  res[[length(res) + 1]] = r
+}
+
+
+{ # duckdb
+  rm(dat)
+  file = file.path(dir, "db.duckdb")
+  disk = file.size(file) / 1e6
+  t0  <- Sys.time()
+  con = DBI::dbConnect(duckdb::duckdb(), file)
+  dat = tbl(con, "dat")
+  t1  <- Sys.time()
+
+    
+  agg_db = tbl(con, "dat") %>% group_by(year, month) %>% 
+  summarise(n = sum(flight)) %>% collect()
+  t2  <- Sys.time()  
+  
+  DBI::dbDisconnect(con, shutdown = TRUE)
+  mem <- as.numeric(object.size(dat)) / 1e6
+  r = list(file = file, time_im = as.numeric(t1-t0), time_agg = as.numeric(t2-t1), mem = mem, disk = disk)
+  res[[length(res) + 1]] = r
+}
+
+res <- res %>% lapply(as.data.table) %>% rbindlist() 
+res_im_agg = res
+
+```
+
+
+
+```{r io-speed-disk-imagg}
+res = inner_join(rename(res_ex, file = new_files, time_export = time), res_im_agg, by = "file", suffix = c("_export", ""))
+
+res %>%
+  ggplot(aes(x = time_export, y = time_agg+time_im, color = disk)) +
+  geom_point() +
+  geom_text_repel(
+    label= res$out_class, 
+    nudge_x = 1,
+    max.overlaps = 20
+    #, nudge_y = 1, check_overlap = T
+  ) + labs(title = "Comparison of IO Speed")  
+
+
+res %>% filter(out_class != "xlsx") %>%
+  ggplot(aes(x = time_export, y = time_agg+time_im, color = disk)) +
+  geom_point() +
+  geom_text_repel(
+    label= filter(res, out_class != "xlsx")$out_class, 
+    nudge_x = 1,
+    max.overlaps = 20
+    #, nudge_y = 1, check_overlap = T
+  ) + labs(title = "Comparison of IO Speed")  
+
+```
+
+```{r io-speed-mem-imagg}
+res %>%
+  ggplot(aes(x = time_export, y = time_im+time_agg, color = mem)) +
+  geom_point() +
+  geom_text_repel(
+    label= res$out_class, 
+    nudge_x = 1,
+    max.overlaps = 20
+    #, nudge_y = 1, check_overlap = T
+  ) + labs(title = "Comparison of IO Speed")  
+
+
+res %>% filter(out_class != "xlsx") %>%
+  ggplot(aes(x = time_export, y = time_agg+time_im, color = mem)) +
+  geom_point() +
+  geom_text_repel(
+    label= filter(res, out_class != "xlsx")$out_class, 
+    nudge_x = 1,
+    max.overlaps = 20
+    #, nudge_y = 1, check_overlap = T
+  ) + labs(title = "Comparison of IO Speed")  
+```
+
+```{r time-by-mem}
+res %>% select(out_class, contains("time"), mem, disk) %>% 
+  pivot_longer(
+    starts_with("time_"),
+    names_pattern = "time_?(.*)",
+    values_to = "time", names_to="operation") %>%
+  mutate(operation = as.factor(case_when(
+    operation == "agg" ~ "1_aggregation",
+    operation == "im" ~ "2_import",
+    operation == "export" ~ "3_export"
+  ))
+    
+  ) %>% 
+  
+  filter(out_class != "xlsx") %>%
+  #{.$operation} %>% levels()
+
+#%>%
+  ggplot(aes(
+    fill = operation, 
+    y = time, 
+    x = reorder(out_class, mem))) +
+  geom_bar(position = "stack", stat = "identity") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + labs(title = "Time consumption", subtitle = "By increasing memory consumption")
+```
+
+
+```{r time-by-disk}
+res %>% select(out_class, contains("time"), mem, disk) %>% 
+  pivot_longer(
+    starts_with("time_"),
+    names_pattern = "time_?(.*)",
+    values_to = "time", names_to="operation") %>%
+  mutate(operation = as.factor(case_when(
+    operation == "agg" ~ "1_aggregation",
+    operation == "im" ~ "2_import",
+    operation == "export" ~ "3_export"
+  ))
+    
+  ) %>% #{.$operation} %>% levels()
+
+  
+  filter(out_class != "xlsx") %>%
+
+#%>%
+  ggplot(aes(
+    fill = operation, 
+    y = time, 
+    x = reorder(out_class, disk))) +
+  geom_bar(position = "stack", stat = "identity") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + labs(title = "Time consumption", subtitle = "By increasing disk consumption")
+```
+
+
+### Move files
+
+
+```{r, include = FALSE}
+
+files = list.files(dir, pattern = "rio", full.names = T)
+
+
+dir_out = here("data/flights_target")
+
+
+
+unlink(dir_out, recursive = TRUE); dir.create(dir_out)
+
+file.copy(files[2], dir_out)
+# or
+shell(gsub("/", "\\\\", paste("copy", files[2], dir_out))) # %>% shell()
+
+paste("7z e",list.files(dir_out, pattern = ".gz", full.names = TRUE)) %>%
+  {gsub("/", "\\\\", .)} %>% shell()
+
+shell("dir", intern= TRUE)
+```
+
+```{r}
+# reset output directory
+unlink(dir, recursive = TRUE); dir.create(dir)#; eval_op(cmds[[1]])
+```
+

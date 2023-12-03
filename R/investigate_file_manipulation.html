@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.280">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Oliver Hauke">
+
+<title>Investigation of file manipulation in R</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="investigate_file_manipulation_files/libs/clipboard/clipboard.min.js"></script>
+<script src="investigate_file_manipulation_files/libs/quarto-html/quarto.js"></script>
+<script src="investigate_file_manipulation_files/libs/quarto-html/popper.min.js"></script>
+<script src="investigate_file_manipulation_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="investigate_file_manipulation_files/libs/quarto-html/anchor.min.js"></script>
+<link href="investigate_file_manipulation_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="investigate_file_manipulation_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="investigate_file_manipulation_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="investigate_file_manipulation_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="investigate_file_manipulation_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Investigation of file manipulation in R</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Oliver Hauke </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">03.12.2023</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+</header>
+
+<!--  To learn more about Quarto see https://quarto.org. -->
+<section id="setup" class="level2">
+<h2 class="anchored" data-anchor-id="setup">Setup</h2>
+<section id="packages" class="level3">
+<h3 class="anchored" data-anchor-id="packages">Packages</h3>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/pkgs_8a7892eee6b191aed73d38b329d5ff9c">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attache Paket: 'dplyr'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Die folgenden Objekte sind maskiert von 'package:stats':
+
+    filter, lag</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Die folgenden Objekte sind maskiert von 'package:base':
+
+    intersect, setdiff, setequal, union</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>here() starts at C:/Users/olisc/OneDrive/code/R/organizer_2nd</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggrepel)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Paket 'ggrepel' wurde unter R Version 4.2.3 erstellt</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rio)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Paket 'rio' wurde unter R Version 4.2.3 erstellt</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attache Paket: 'data.table'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Die folgenden Objekte sind maskiert von 'package:dplyr':
+
+    between, first, last</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tibble)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dbplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attache Paket: 'dbplyr'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Die folgenden Objekte sind maskiert von 'package:dplyr':
+
+    ident, sql</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(forcats)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">dplyr.summarise.inform =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="functions" class="level3">
+<h3 class="anchored" data-anchor-id="functions">Functions</h3>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/eval_fun_5055e58311360a110216b0e1fdc10420">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>eval_cmd <span class="ot">=</span> <span class="cf">function</span>(cmd, <span class="at">loc =</span> here<span class="sc">::</span><span class="fu">here</span>()){</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  name <span class="ot">=</span> <span class="fu">paste</span>(<span class="fu">deparse</span>(cmd), <span class="at">collapse=</span><span class="st">""</span>)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Status vor Befehl</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  f0 <span class="ot">=</span> <span class="fu">list.files</span>(loc, <span class="at">recursive =</span> <span class="cn">TRUE</span>, <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  m0 <span class="ot">=</span> <span class="fu">as.numeric</span>(<span class="fu">object.size</span>(<span class="fu">ls</span>()))</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>  t0 <span class="ot">=</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Anwendung des Befehls</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">eval</span>(cmd, <span class="at">envir =</span> .GlobalEnv)</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Status nach Befehl</span></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>  t1 <span class="ot">=</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>  f1 <span class="ot">=</span> <span class="fu">list.files</span>(loc, <span class="at">recursive =</span> <span class="cn">TRUE</span>, <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>  m1 <span class="ot">=</span> <span class="fu">as.numeric</span>(<span class="fu">object.size</span>(<span class="fu">ls</span>()))</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Aenderungen</span></span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>  t_delta <span class="ot">=</span> t1 <span class="sc">-</span> t0 </span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>  f_delta <span class="ot">=</span> <span class="fu">setdiff</span>(f1, f0)</span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>  d_delta <span class="ot">=</span> <span class="fu">sum</span>(<span class="fu">file.size</span>(f_delta)) </span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>  m_delta <span class="ot">=</span> m1 <span class="sc">-</span> m0</span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Ausgabe</span></span>
+<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a>  output <span class="ot">=</span> <span class="fu">list</span>()</span>
+<span id="cb18-27"><a href="#cb18-27" aria-hidden="true" tabindex="-1"></a>  output[[<span class="st">'fun'</span>]]        <span class="ot">=</span> stringr<span class="sc">::</span><span class="fu">str_remove_all</span>(name, <span class="st">"</span><span class="sc">\\</span><span class="st">(.*"</span>)</span>
+<span id="cb18-28"><a href="#cb18-28" aria-hidden="true" tabindex="-1"></a>  output[[<span class="st">'time'</span>]]       <span class="ot">=</span> <span class="fu">as.numeric</span>(t1 <span class="sc">-</span> t0) <span class="co">#/ 6e1 # in min</span></span>
+<span id="cb18-29"><a href="#cb18-29" aria-hidden="true" tabindex="-1"></a>  output[[<span class="st">'disk_delta'</span>]] <span class="ot">=</span> d_delta             <span class="sc">/</span> <span class="fl">1e6</span> <span class="co"># in MB</span></span>
+<span id="cb18-30"><a href="#cb18-30" aria-hidden="true" tabindex="-1"></a>  output[[<span class="st">'mem_delta'</span>]]  <span class="ot">=</span> m_delta             <span class="sc">/</span> <span class="fl">1e6</span> <span class="co"># in MB</span></span>
+<span id="cb18-31"><a href="#cb18-31" aria-hidden="true" tabindex="-1"></a>  output[[<span class="st">'new_files'</span>]]  <span class="ot">=</span> f_delta</span>
+<span id="cb18-32"><a href="#cb18-32" aria-hidden="true" tabindex="-1"></a>  output[[<span class="st">'out_class'</span>]]  <span class="ot">=</span> <span class="fu">sapply</span>(f_delta, <span class="cf">function</span>(file) tools<span class="sc">::</span><span class="fu">file_ext</span>(file), <span class="at">USE.NAMES =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb18-33"><a href="#cb18-33" aria-hidden="true" tabindex="-1"></a>  output[[<span class="st">'args'</span>]]       <span class="ot">=</span> stringr<span class="sc">::</span><span class="fu">str_extract_all</span>(name, <span class="st">"</span><span class="sc">\\</span><span class="st">(.*</span><span class="sc">\\</span><span class="st">)"</span>)[[<span class="dv">1</span>]] </span>
+<span id="cb18-34"><a href="#cb18-34" aria-hidden="true" tabindex="-1"></a>  output[[<span class="st">'cmd'</span>]]        <span class="ot">=</span> <span class="fu">paste</span>(<span class="fu">deparse</span>(cmd), <span class="at">collapse=</span><span class="st">""</span>)</span>
+<span id="cb18-35"><a href="#cb18-35" aria-hidden="true" tabindex="-1"></a>  output</span>
+<span id="cb18-36"><a href="#cb18-36" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="data" class="level3">
+<h3 class="anchored" data-anchor-id="data">Data</h3>
+<p>Get data from the Package <code>nycflights13</code> and save it as csv in the folder <code>data</code>.</p>
+</section>
+</section>
+<section id="comparison-for-nycflights" class="level2">
+<h2 class="anchored" data-anchor-id="comparison-for-nycflights">Comparison for nycflights</h2>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/get-data_8e57fb3042756f1c4f18578fabfcf24b">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>dir <span class="ot">=</span> <span class="fu">here</span>(<span class="st">'data/flights_out'</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">=</span> nycflights13<span class="sc">::</span>flights</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/datasize_7b37ee4b3b0fd379204174bf045cc910">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="co">#ind = sample(1:nrow(dat), 6.129e4, replace = TRUE); dat = dat[ind,]</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<section id="writing-to-disk" class="level3">
+<h3 class="anchored" data-anchor-id="writing-to-disk">Writing to disk</h3>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/ex_write_41bd4bd2dd974c1fca7e980c2ed2f590">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">setdiff</span>(<span class="fu">ls</span>(), <span class="fu">c</span>(<span class="st">"dat"</span>, <span class="st">"dir"</span>, <span class="st">"eval_cmd"</span>, <span class="st">"cmds"</span>))); <span class="fu">gc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>          used (Mb) gc trigger  (Mb) max used  (Mb)
+Ncells 1004124 53.7    2020290 107.9  1606051  85.8
+Vcells 6772442 51.7   26532558 202.5 24681947 188.4</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>cmds <span class="ot">=</span> <span class="fu">c</span>(</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(<span class="fu">write.csv2</span>(dat, <span class="fu">file.path</span>(dir, <span class="st">"baser.csv"</span>), <span class="at">row.names =</span> <span class="cn">FALSE</span>)), </span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(<span class="fu">save</span>(dat, <span class="at">file =</span> <span class="fu">file.path</span>(dir, <span class="st">"RData.RData"</span>))),</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(<span class="fu">saveRDS</span>(dat, <span class="at">file =</span> <span class="fu">file.path</span>(dir, <span class="st">"RDS.rds"</span>))),</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(readr<span class="sc">::</span><span class="fu">write_csv2</span>(dat, <span class="fu">file.path</span>(dir, <span class="st">"readr.csv"</span>))),</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(data.table<span class="sc">::</span><span class="fu">fwrite</span>(dat, <span class="fu">file.path</span>(dir, <span class="st">"DT.csv"</span>), <span class="at">sep =</span><span class="st">";"</span>)),</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(fst<span class="sc">::</span><span class="fu">write.fst</span>(dat, <span class="fu">file.path</span>(dir, <span class="st">"fst.fst"</span>), <span class="at">compress =</span> <span class="dv">50</span>)),</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(<span class="fu">write.csv2</span>(dat, <span class="at">file =</span> <span class="fu">gzfile</span>(<span class="fu">file.path</span>(dir, <span class="st">'basergz.csv.gz'</span>)), <span class="at">row.names =</span> F)),</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(readr<span class="sc">::</span><span class="fu">write_csv2</span>(dat, <span class="fu">file.path</span>(dir, <span class="st">"readrgz.csv.gz"</span>))),</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(data.table<span class="sc">::</span><span class="fu">fwrite</span>(dat, <span class="fu">file.path</span>(dir, <span class="st">"DT.csv.gz"</span>))),</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(qs<span class="sc">::</span><span class="fu">qsave</span>(dat, <span class="fu">file.path</span>(dir,<span class="st">'qs.qs'</span>))),</span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(feather<span class="sc">::</span><span class="fu">write_feather</span>(dat,<span class="fu">file.path</span>(dir,<span class="st">'feat.feather'</span>))),</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(arrow<span class="sc">::</span><span class="fu">write_parquet</span>(dat,<span class="fu">file.path</span>(dir,<span class="st">'par.parquet'</span>))),</span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>({</span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>    con <span class="ot">=</span> DBI<span class="sc">::</span><span class="fu">dbConnect</span>(RSQLite<span class="sc">::</span><span class="fu">SQLite</span>(), <span class="fu">file.path</span>(dir, <span class="st">"db.sqlite"</span>))</span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>    DBI<span class="sc">::</span><span class="fu">dbWriteTable</span>(con, <span class="st">"dat"</span>, <span class="fu">as.data.frame</span>(dat))</span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>    DBI<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>  }),</span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>({</span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>    con <span class="ot">=</span> DBI<span class="sc">::</span><span class="fu">dbConnect</span>(duckdb<span class="sc">::</span><span class="fu">duckdb</span>(), <span class="fu">file.path</span>(dir, <span class="st">"db.duckdb"</span>))</span>
+<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>    DBI<span class="sc">::</span><span class="fu">dbWriteTable</span>(con, <span class="st">"dat"</span>, <span class="fu">as.data.frame</span>(dat))</span>
+<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>    DBI<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a>  }),</span>
+<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(rio<span class="sc">::</span><span class="fu">export</span>(dat, <span class="fu">file.path</span>(dir,<span class="st">'rio.csv'</span>))),</span>
+<span id="cb23-28"><a href="#cb23-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(rio<span class="sc">::</span><span class="fu">export</span>(dat, <span class="fu">file.path</span>(dir,<span class="st">'rio.psv'</span>))),</span>
+<span id="cb23-29"><a href="#cb23-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(rio<span class="sc">::</span><span class="fu">export</span>(dat, <span class="fu">file.path</span>(dir,<span class="st">'rio.tsv'</span>))),</span>
+<span id="cb23-30"><a href="#cb23-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(rio<span class="sc">::</span><span class="fu">export</span>(dat, <span class="fu">file.path</span>(dir,<span class="st">'rio.sas7bdat'</span>))),</span>
+<span id="cb23-31"><a href="#cb23-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(rio<span class="sc">::</span><span class="fu">export</span>(dat, <span class="fu">file.path</span>(dir,<span class="st">'rio.xpt'</span>))),</span>
+<span id="cb23-32"><a href="#cb23-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(rio<span class="sc">::</span><span class="fu">export</span>(dat, <span class="fu">file.path</span>(dir,<span class="st">'rio.sav'</span>))),</span>
+<span id="cb23-33"><a href="#cb23-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(rio<span class="sc">::</span><span class="fu">export</span>(dat, <span class="fu">file.path</span>(dir,<span class="st">'rio.zsav'</span>))),</span>
+<span id="cb23-34"><a href="#cb23-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(rio<span class="sc">::</span><span class="fu">export</span>(dat, <span class="fu">file.path</span>(dir,<span class="st">'rio.dta'</span>))),</span>
+<span id="cb23-35"><a href="#cb23-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(rio<span class="sc">::</span><span class="fu">export</span>(dat, <span class="fu">file.path</span>(dir,<span class="st">'rio.xlsx'</span>))),</span>
+<span id="cb23-36"><a href="#cb23-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(rio<span class="sc">::</span><span class="fu">export</span>(dat, <span class="fu">file.path</span>(dir,<span class="st">'rio.rds'</span>))),</span>
+<span id="cb23-37"><a href="#cb23-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(rio<span class="sc">::</span><span class="fu">export</span>(dat, <span class="fu">file.path</span>(dir,<span class="st">'rio.qs'</span>))),</span>
+<span id="cb23-38"><a href="#cb23-38" aria-hidden="true" tabindex="-1"></a>  <span class="co">#expr(rio::export(dat, file.path(dir,'rio.dbf'))),</span></span>
+<span id="cb23-39"><a href="#cb23-39" aria-hidden="true" tabindex="-1"></a>  <span class="co">#expr(rio::export(dat, file.path(dir,'rio.arff'))),</span></span>
+<span id="cb23-40"><a href="#cb23-40" aria-hidden="true" tabindex="-1"></a>  <span class="co">#expr(rio::export(dat, file.path(dir,'rio.fwf'))),</span></span>
+<span id="cb23-41"><a href="#cb23-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(rio<span class="sc">::</span><span class="fu">export</span>(dat, <span class="fu">file.path</span>(dir,<span class="st">'rio.csv.gz'</span>))),</span>
+<span id="cb23-42"><a href="#cb23-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(rio<span class="sc">::</span><span class="fu">export</span>(dat, <span class="fu">file.path</span>(dir,<span class="st">'rio.parquet'</span>))),</span>
+<span id="cb23-43"><a href="#cb23-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(rio<span class="sc">::</span><span class="fu">export</span>(dat, <span class="fu">file.path</span>(dir,<span class="st">'rio.feather'</span>))),</span>
+<span id="cb23-44"><a href="#cb23-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expr</span>(rio<span class="sc">::</span><span class="fu">export</span>(dat, <span class="fu">file.path</span>(dir,<span class="st">'rio.fst'</span>)))</span>
+<span id="cb23-45"><a href="#cb23-45" aria-hidden="true" tabindex="-1"></a>  <span class="co">#expr(rio::export(dat, file.path(dir,'rio.json'))),</span></span>
+<span id="cb23-46"><a href="#cb23-46" aria-hidden="true" tabindex="-1"></a>  <span class="co">#expr(rio::export(dat, file.path(dir,'rio.mat'))),</span></span>
+<span id="cb23-47"><a href="#cb23-47" aria-hidden="true" tabindex="-1"></a>  <span class="co">#expr(rio::export(dat, file.path(dir,'rio.ods'))),</span></span>
+<span id="cb23-48"><a href="#cb23-48" aria-hidden="true" tabindex="-1"></a>  <span class="co">#expr(rio::export(dat, file.path(dir,'rio.xml'))),</span></span>
+<span id="cb23-49"><a href="#cb23-49" aria-hidden="true" tabindex="-1"></a>  <span class="co">#expr(rio::export(dat, file.path(dir,'rio.html')))</span></span>
+<span id="cb23-50"><a href="#cb23-50" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb23-51"><a href="#cb23-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-52"><a href="#cb23-52" aria-hidden="true" tabindex="-1"></a><span class="co"># gz over zip, s. https://stackoverflow.com/questions/38487628/how-do-i-zip-a-csv-file-and-write-that-zipped-file-to-a-folder-using-r</span></span>
+<span id="cb23-53"><a href="#cb23-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-54"><a href="#cb23-54" aria-hidden="true" tabindex="-1"></a><span class="co"># reset output directory</span></span>
+<span id="cb23-55"><a href="#cb23-55" aria-hidden="true" tabindex="-1"></a><span class="fu">unlink</span>(dir, <span class="at">recursive =</span> <span class="cn">TRUE</span>); <span class="fu">dir.create</span>(dir)<span class="co">#; eval_op(cmds[[1]])</span></span>
+<span id="cb23-56"><a href="#cb23-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-57"><a href="#cb23-57" aria-hidden="true" tabindex="-1"></a><span class="co"># apply cmds</span></span>
+<span id="cb23-58"><a href="#cb23-58" aria-hidden="true" tabindex="-1"></a>result <span class="ot">=</span> <span class="fu">lapply</span>(cmds, eval_cmd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Paket 'fstcore' wurde unter R Version 4.2.3 erstellt</code></pre>
+</div>
+</div>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/ex_write_out_f129f73c9df7a7b784d03466f95915ec">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># show results</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>res_tab <span class="ot">=</span> result <span class="sc">%&gt;%</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rbindlist</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">#lapply(as_tibble) %&gt;%</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">#{do.call(rbindlist, .)} %&gt;% </span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">relocate</span>(out_class, <span class="at">.after =</span> fun) <span class="sc">%&gt;%</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(time) <span class="sc">%&gt;%</span> </span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">method =</span> <span class="fu">paste0</span>(fun, <span class="st">"("</span>, out_class,<span class="st">")"</span>),</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>         <span class="at">method =</span> <span class="fu">ifelse</span>(<span class="fu">grepl</span>(<span class="st">"sqlite"</span>, method), <span class="st">"sqlite"</span>, method),</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">method =</span> <span class="fu">ifelse</span>(<span class="fu">grepl</span>(<span class="st">"duckdb"</span>, method), <span class="st">"duckdb"</span>, method)</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>         )</span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>res_tab  <span class="sc">%&gt;%</span> </span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">grepl</span>(<span class="st">"rio"</span>, fun)) <span class="sc">%&gt;%</span></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> time, <span class="at">y =</span> disk_delta<span class="co">#, color = method</span></span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>             )) <span class="sc">+</span></span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text_repel</span>(</span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">label=</span> res_tab[<span class="fu">which</span>(<span class="sc">!</span><span class="fu">grepl</span>(<span class="st">"rio"</span>, res_tab<span class="sc">$</span>fun)),<span class="st">'method'</span>][[<span class="dv">1</span>]], </span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">nudge_x =</span> <span class="dv">1</span>,</span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">max.overlaps =</span> <span class="dv">20</span></span>
+<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Comparison of export functions"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="investigate_file_manipulation_files/figure-html/ex_write_out-1.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>res_tab  <span class="sc">%&gt;%</span> </span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">grepl</span>(<span class="st">"rio"</span>, fun)) <span class="sc">%&gt;%</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> time, <span class="at">y =</span> disk_delta<span class="co">#, color = method</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>             )) <span class="sc">+</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text_repel</span>(</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">label=</span> stringr<span class="sc">::</span><span class="fu">str_remove_all</span>(res_tab[<span class="fu">which</span>(<span class="fu">grepl</span>(<span class="st">"rio"</span>, res_tab<span class="sc">$</span>fun)),<span class="st">'method'</span>][[<span class="dv">1</span>]], <span class="st">"rio::export</span><span class="sc">\\</span><span class="st">(|</span><span class="sc">\\</span><span class="st">)"</span>), </span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">nudge_x =</span> <span class="dv">1</span>,</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">max.overlaps =</span> <span class="dv">20</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">#, nudge_y = 1, check_overlap = T</span></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"rio::export for different file types"</span>, <span class="at">y =</span> <span class="st">"disk_space"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="investigate_file_manipulation_files/figure-html/ex_write_out-2.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>data.table<span class="sc">::</span><span class="fu">fwrite</span>(</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(res_tab, <span class="fu">across</span>(<span class="fu">where</span>(is.numeric),<span class="at">.fns =</span> <span class="sc">~</span> <span class="fu">round</span>(.x, <span class="dv">4</span>)))</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  , <span class="fu">here</span>(<span class="st">"data/result_export.csv"</span>), <span class="at">sep =</span> <span class="st">";"</span>)</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>res_tab <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(<span class="fu">grepl</span>(<span class="st">"rio"</span>, fun)) <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>new_files, <span class="sc">-</span>args, <span class="sc">-</span> cmd,<span class="sc">-</span> fun, <span class="sc">-</span>out_class) <span class="sc">%&gt;%</span> <span class="fu">relocate</span>(method)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>                             method       time disk_delta mem_delta
+ 1:         data.table::fwrite(csv) 0.03908205  31.297437  0.000256
+ 2: feather::write_feather(feather) 0.04282403  39.977288  0.000256
+ 3:             fst::write.fst(fst) 0.06838799  15.907648  0.000256
+ 4:                   qs::qsave(qs) 0.17463183   5.686050  0.000256
+ 5:          data.table::fwrite(gz) 0.30177188   8.277903  0.000256
+ 6:   arrow::write_parquet(parquet) 0.32646203   5.696257  0.000256
+ 7:                          sqlite 0.48927689  22.159360  0.000256
+ 8:                          duckdb 0.59695911  13.119488  0.000256
+ 9:                     save(RData) 1.64793301   6.954824  0.000256
+10:                    saveRDS(rds) 1.65073419   6.954779  0.000256
+11:          readr::write_csv2(csv) 4.27381492  31.053850  0.000256
+12:           readr::write_csv2(gz) 5.67500281   8.254194  0.000256
+13:                  write.csv2(gz) 8.13078308   8.529058  0.000256
+14:                 write.csv2(csv) 8.14499497  33.743073  0.000256
+15:                rio::export(tsv) 0.03652906  31.297437  0.000256
+16:                rio::export(psv) 0.03753090  31.297437  0.000256
+17:                rio::export(fst) 0.04832506  15.907648  0.000256
+18:            rio::export(feather) 0.05846500  17.187002  0.000256
+19:                rio::export(csv) 0.08129311  31.297437  0.000256
+20:                 rio::export(qs) 0.13839698   5.686050  0.000256
+21:            rio::export(parquet) 0.15977788   5.696257  0.000256
+22:                 rio::export(gz) 0.30111599   8.277903  0.000256
+23:                rio::export(rds) 1.63037395   6.954779  0.000256
+24:                rio::export(dta) 2.36476588  34.363867  0.000256
+25:                rio::export(sav) 2.41991687  40.975632  0.000256
+26:           rio::export(sas7bdat) 2.47158098  45.993984  0.000256
+27:                rio::export(xpt) 2.56127405  45.131440  0.000256
+28:               rio::export(zsav) 3.40158415   9.763950  0.000256
+29:               rio::export(xlsx) 9.08501410  29.139353  0.000256
+                             method       time disk_delta mem_delta</code></pre>
+</div>
+</div>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/unnamed-chunk-1_373bb0dfde0998079588f7f99418978b">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>res_tab  <span class="sc">%&gt;%</span> </span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">#filter(!grepl("rio", fun)) %&gt;%</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> time, <span class="at">y =</span> disk_delta<span class="co">#, color = method</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>             )) <span class="sc">+</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text_repel</span>(</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">label=</span> res_tab[,<span class="st">'method'</span>][[<span class="dv">1</span>]], </span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">nudge_x =</span> <span class="dv">1</span>,</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">max.overlaps =</span> <span class="dv">20</span></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Comparison of export functions"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="investigate_file_manipulation_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>res_ex <span class="ot">=</span> res_tab</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="reading-direct" class="level3">
+<h3 class="anchored" data-anchor-id="reading-direct">Reading (direct)</h3>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/im-eval_887ecea3e6fcd6ac8006d7685fe38e73">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co">#eval(expr(write.csv2(dat, here("data/flights.csv"), row.names = FALSE))) </span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>files <span class="ot">=</span> <span class="fu">list.files</span>(dir, <span class="at">pattern =</span> <span class="st">"rio"</span>, <span class="at">full.names =</span> T)</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>res <span class="ot">=</span> <span class="fu">list</span>()</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (file <span class="cf">in</span> files[<span class="fu">which</span>(<span class="sc">!</span><span class="fu">grepl</span>(<span class="st">"db"</span>,files))]){</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rm</span>(dat)</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>  disk <span class="ot">=</span> <span class="fu">file.size</span>(file) <span class="sc">/</span><span class="fl">1e6</span></span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>  t0  <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>  dat <span class="ot">&lt;-</span> <span class="fu">import</span>(file, <span class="at">setclass =</span> <span class="st">"data.table"</span>)</span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>  t1  <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>  mem <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">object.size</span>(dat)) <span class="sc">/</span> <span class="fl">1e6</span></span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>  r <span class="ot">=</span> <span class="fu">list</span>(<span class="at">file =</span> file, <span class="at">time =</span> <span class="fu">as.numeric</span>(t1<span class="sc">-</span>t0), <span class="at">mem =</span> mem, <span class="at">disk =</span> disk)</span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a>  res[[<span class="fu">length</span>(res) <span class="sc">+</span> <span class="dv">1</span>]] <span class="ot">=</span> r</span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>{ <span class="co"># sqlite</span></span>
+<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rm</span>(dat)</span>
+<span id="cb31-21"><a href="#cb31-21" aria-hidden="true" tabindex="-1"></a>  file <span class="ot">=</span> <span class="fu">file.path</span>(dir, <span class="st">"db.sqlite"</span>)</span>
+<span id="cb31-22"><a href="#cb31-22" aria-hidden="true" tabindex="-1"></a>  disk <span class="ot">=</span> <span class="fu">file.size</span>(file) <span class="sc">/</span><span class="fl">1e6</span></span>
+<span id="cb31-23"><a href="#cb31-23" aria-hidden="true" tabindex="-1"></a>  t0  <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb31-24"><a href="#cb31-24" aria-hidden="true" tabindex="-1"></a>  con <span class="ot">=</span> DBI<span class="sc">::</span><span class="fu">dbConnect</span>(RSQLite<span class="sc">::</span><span class="fu">SQLite</span>(), file)</span>
+<span id="cb31-25"><a href="#cb31-25" aria-hidden="true" tabindex="-1"></a>  dat <span class="ot">=</span> <span class="fu">tbl</span>(con, <span class="st">"dat"</span>)</span>
+<span id="cb31-26"><a href="#cb31-26" aria-hidden="true" tabindex="-1"></a>  DBI<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb31-27"><a href="#cb31-27" aria-hidden="true" tabindex="-1"></a>  t1  <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb31-28"><a href="#cb31-28" aria-hidden="true" tabindex="-1"></a>  mem <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">object.size</span>(dat)) <span class="sc">/</span> <span class="fl">1e6</span></span>
+<span id="cb31-29"><a href="#cb31-29" aria-hidden="true" tabindex="-1"></a>  r <span class="ot">=</span> <span class="fu">list</span>(<span class="at">file =</span> file, <span class="at">time =</span> <span class="fu">as.numeric</span>(t1<span class="sc">-</span>t0), <span class="at">mem =</span> mem, <span class="at">disk =</span> disk)</span>
+<span id="cb31-30"><a href="#cb31-30" aria-hidden="true" tabindex="-1"></a>  res[[<span class="fu">length</span>(res) <span class="sc">+</span> <span class="dv">1</span>]] <span class="ot">=</span> r</span>
+<span id="cb31-31"><a href="#cb31-31" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb31-32"><a href="#cb31-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-33"><a href="#cb31-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-34"><a href="#cb31-34" aria-hidden="true" tabindex="-1"></a>{ <span class="co"># duckdb</span></span>
+<span id="cb31-35"><a href="#cb31-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rm</span>(dat)</span>
+<span id="cb31-36"><a href="#cb31-36" aria-hidden="true" tabindex="-1"></a>  file <span class="ot">=</span> <span class="fu">file.path</span>(dir, <span class="st">"db.duckdb"</span>)</span>
+<span id="cb31-37"><a href="#cb31-37" aria-hidden="true" tabindex="-1"></a>  disk <span class="ot">=</span> <span class="fu">file.size</span>(file) <span class="sc">/</span> <span class="fl">1e6</span></span>
+<span id="cb31-38"><a href="#cb31-38" aria-hidden="true" tabindex="-1"></a>  t0  <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb31-39"><a href="#cb31-39" aria-hidden="true" tabindex="-1"></a>  con <span class="ot">=</span> DBI<span class="sc">::</span><span class="fu">dbConnect</span>(duckdb<span class="sc">::</span><span class="fu">duckdb</span>(), file)</span>
+<span id="cb31-40"><a href="#cb31-40" aria-hidden="true" tabindex="-1"></a>  dat <span class="ot">=</span> <span class="fu">tbl</span>(con, <span class="st">"dat"</span>)</span>
+<span id="cb31-41"><a href="#cb31-41" aria-hidden="true" tabindex="-1"></a>  DBI<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb31-42"><a href="#cb31-42" aria-hidden="true" tabindex="-1"></a>  t1  <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb31-43"><a href="#cb31-43" aria-hidden="true" tabindex="-1"></a>  mem <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">object.size</span>(dat)) <span class="sc">/</span> <span class="fl">1e6</span></span>
+<span id="cb31-44"><a href="#cb31-44" aria-hidden="true" tabindex="-1"></a>  r <span class="ot">=</span> <span class="fu">list</span>(<span class="at">file =</span> file, <span class="at">time =</span> <span class="fu">as.numeric</span>(t1<span class="sc">-</span>t0), <span class="at">mem =</span> mem, <span class="at">disk =</span> disk)</span>
+<span id="cb31-45"><a href="#cb31-45" aria-hidden="true" tabindex="-1"></a>  res[[<span class="fu">length</span>(res) <span class="sc">+</span> <span class="dv">1</span>]] <span class="ot">=</span> r</span>
+<span id="cb31-46"><a href="#cb31-46" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb31-47"><a href="#cb31-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-48"><a href="#cb31-48" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> res <span class="sc">%&gt;%</span> <span class="fu">lapply</span>(as.data.table) <span class="sc">%&gt;%</span> <span class="fu">rbindlist</span>() </span>
+<span id="cb31-49"><a href="#cb31-49" aria-hidden="true" tabindex="-1"></a>res_im <span class="ot">=</span> res</span>
+<span id="cb31-50"><a href="#cb31-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-51"><a href="#cb31-51" aria-hidden="true" tabindex="-1"></a>res_im <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>file)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>          time       mem      disk
+ 1: 0.06986094 32.569024 31.297437
+ 2: 0.26958418 32.569024  8.277903
+ 3: 1.38345599 51.432736 34.363867
+ 4: 0.08957791 40.651616 17.187002
+ 5: 0.23768783 40.651616 15.907648
+ 6: 0.10378003 40.651616  5.696257
+ 7: 0.07427096 32.569024 31.297437
+ 8: 0.08375597 40.651616  5.686050
+ 9: 0.28479600 40.651616  6.954779
+10: 1.11933994 51.428712 45.993984
+11: 1.26170802 51.432744 40.975632
+12: 0.06445503 32.569024 31.297437
+13: 4.85968304 51.428424 29.139353
+14: 1.41462517 51.428712 45.131440
+15: 1.27741504 51.432744  9.763950
+16: 0.02636695  0.006640 22.159360
+17: 0.07715797  0.038192 13.119488</code></pre>
+</div>
+</div>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/unnamed-chunk-2_a7e63556a79831fe2fe4e4f693948299">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> res_im[, file <span class="sc">:</span><span class="er">=</span> stringr<span class="sc">::</span><span class="fu">str_remove</span>(<span class="fu">basename</span>(file), <span class="st">"rio</span><span class="sc">\\</span><span class="st">."</span>)][<span class="fu">order</span>(time)]</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>res  <span class="sc">%&gt;%</span> </span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> mem, <span class="at">y =</span> time, <span class="at">color =</span> disk)) <span class="sc">+</span></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text_repel</span>(</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">label=</span> res<span class="sc">$</span>file, </span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">nudge_x =</span> <span class="dv">1</span>,</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">max.overlaps =</span> <span class="dv">20</span></span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">#, nudge_y = 1, check_overlap = T</span></span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Comparison of import file types"</span>)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="investigate_file_manipulation_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>data.table<span class="sc">::</span><span class="fu">fwrite</span>(</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(res, <span class="fu">across</span>(<span class="fu">where</span>(is.numeric),<span class="at">.fns =</span> <span class="sc">~</span> <span class="fu">round</span>(.x, <span class="dv">4</span>)))</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  , <span class="fu">here</span>(<span class="st">"data/result_import.csv"</span>), <span class="at">sep =</span> <span class="st">";"</span>)</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(res)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>         file       time       mem      disk
+ 1: db.sqlite 0.02636695  0.006640 22.159360
+ 2:       tsv 0.06445503 32.569024 31.297437
+ 3:       csv 0.06986094 32.569024 31.297437
+ 4:       psv 0.07427096 32.569024 31.297437
+ 5: db.duckdb 0.07715797  0.038192 13.119488
+ 6:        qs 0.08375597 40.651616  5.686050
+ 7:   feather 0.08957791 40.651616 17.187002
+ 8:   parquet 0.10378003 40.651616  5.696257
+ 9:       fst 0.23768783 40.651616 15.907648
+10:    csv.gz 0.26958418 32.569024  8.277903
+11:       rds 0.28479600 40.651616  6.954779
+12:  sas7bdat 1.11933994 51.428712 45.993984
+13:       sav 1.26170802 51.432744 40.975632
+14:      zsav 1.27741504 51.432744  9.763950
+15:       dta 1.38345599 51.432736 34.363867
+16:       xpt 1.41462517 51.428712 45.131440
+17:      xlsx 4.85968304 51.428424 29.139353</code></pre>
+</div>
+</div>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/io-speed-disk-in-124_078680ed366fcd7388f7c3f05d93600c">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co">#res = inner_join(rename(res_ex, file = new_files), res_im, by = "file", suffix = c("_export", "_import"))</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>res  <span class="sc">%&gt;%</span> </span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> disk, <span class="at">y =</span> mem, <span class="at">color =</span> time)) <span class="sc">+</span></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text_repel</span>(</span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">label=</span> res<span class="sc">$</span>file, </span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">nudge_x =</span> <span class="dv">1</span>,</span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">max.overlaps =</span> <span class="dv">20</span></span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">#, nudge_y = 1, check_overlap = T</span></span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Comparison of import file types"</span>)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="investigate_file_manipulation_files/figure-html/io-speed-disk-in-124-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/io-speed-mem_94d099f2b5251b50d7d43b7eb4412b0f">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co">#res = inner_join(rename(res_ex, file = new_files), res_im, by = "file", suffix = c("_export", "_import"))</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>res  <span class="sc">%&gt;%</span> </span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> disk, <span class="at">y =</span> time, <span class="at">color =</span> mem)) <span class="sc">+</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text_repel</span>(</span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">label=</span> res<span class="sc">$</span>file, </span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">nudge_x =</span> <span class="dv">1</span>,</span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">max.overlaps =</span> <span class="dv">20</span></span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">#, nudge_y = 1, check_overlap = T</span></span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Comparison of import file types"</span>)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="investigate_file_manipulation_files/figure-html/io-speed-mem-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<section id="multi-fread" class="level4">
+<h4 class="anchored" data-anchor-id="multi-fread">Multi-Fread</h4>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/unnamed-chunk-3_d98f1aac7838fc7ddee1d97a5c4c2209">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>res_mp <span class="ot">=</span> <span class="fu">list</span>()</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (n <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">getDTthreads</span>()){</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rm</span>(dat)</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>  file <span class="ot">=</span> files[[<span class="dv">1</span>]]</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>  disk <span class="ot">=</span> <span class="fu">file.size</span>(file) <span class="sc">/</span><span class="fl">1e6</span></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>  t0  <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>  dat <span class="ot">&lt;-</span> <span class="fu">fread</span>(file, <span class="at">nThread =</span> n)</span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>  t1  <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a>  mem <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">object.size</span>(dat)) <span class="sc">/</span> <span class="fl">1e6</span></span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a>  r <span class="ot">=</span> <span class="fu">list</span>(<span class="at">threads =</span> n, <span class="at">time =</span> <span class="fu">as.numeric</span>(t1<span class="sc">-</span>t0), <span class="at">mem =</span> mem, <span class="at">disk =</span> disk)</span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>  res_mp[[<span class="fu">length</span>(res_mp) <span class="sc">+</span> <span class="dv">1</span>]] <span class="ot">=</span> r</span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/fread_mp_027523e386dfee11a178c1f602ce3517">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> res_mp <span class="sc">%&gt;%</span> <span class="fu">lapply</span>(as.data.table) <span class="sc">%&gt;%</span> <span class="fu">rbindlist</span>() </span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>res  <span class="sc">%&gt;%</span> <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> threads, <span class="at">y =</span> time)) <span class="sc">+</span> <span class="fu">geom_col</span>() <span class="sc">+</span> </span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Multi-Thread fread: time comparison"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="investigate_file_manipulation_files/figure-html/fread_mp-1.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>data.table<span class="sc">::</span><span class="fu">fwrite</span>(</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(res, <span class="fu">across</span>(<span class="fu">where</span>(is.numeric),<span class="at">.fns =</span> <span class="sc">~</span> <span class="fu">round</span>(.x, <span class="dv">4</span>)))</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  , <span class="fu">here</span>(<span class="st">"data/result_import.csv"</span>), <span class="at">sep =</span> <span class="st">";"</span>)</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(res)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>   threads       time      mem     disk
+1:       1 0.12991095 32.56902 31.29744
+2:       2 0.06591415 32.56902 31.29744
+3:       3 0.05121207 32.56902 31.29744
+4:       4 0.06586099 32.56902 31.29744
+5:       5 0.05089593 32.56902 31.29744
+6:       6 0.04935217 32.56902 31.29744
+7:       7 0.06250000 32.56902 31.29744
+8:       8 0.04896998 32.56902 31.29744</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="reading-indirect" class="level3">
+<h3 class="anchored" data-anchor-id="reading-indirect">Reading (indirect)</h3>
+<ul>
+<li>DB</li>
+<li>BigMatrix</li>
+<li>Lazy Computing, only connection</li>
+</ul>
+<p><strong>Baseline</strong></p>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/ind-base_a666b45e58f4dfed99596a50c66abaa3">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>start <span class="ot">=</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">=</span> <span class="fu">fread</span>(<span class="fu">file.path</span>(dir, <span class="st">"DT.csv"</span>))</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>out <span class="ot">=</span> dat[, <span class="fu">sum</span>(flight), by<span class="ot">=</span><span class="fu">list</span>(year,month)]</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste0</span>(</span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Object size: "</span>, </span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>  (<span class="fu">object.size</span>(dat)<span class="sc">+</span> <span class="fu">object.size</span>(out))<span class="sc">/</span><span class="fl">1e6</span>, <span class="st">" MB"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Object size: 32.570712 MB"</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste0</span>(<span class="st">'time: '</span>, <span class="fu">Sys.time</span>() <span class="sc">-</span> start))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "time: 0.103042840957642"</code></pre>
+</div>
+</div>
+<section id="sqlite" class="level4">
+<h4 class="anchored" data-anchor-id="sqlite">SQLite</h4>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/rsql_52e0daf7e796fa769ad186a29e3c84c4">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>start <span class="ot">=</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>con <span class="ot">=</span> DBI<span class="sc">::</span><span class="fu">dbConnect</span>(RSQLite<span class="sc">::</span><span class="fu">SQLite</span>(), <span class="fu">file.path</span>(dir, <span class="st">"db.sqlite"</span>))</span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>tbl <span class="ot">=</span> <span class="fu">tbl</span>(con, <span class="st">"dat"</span>)</span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>out <span class="ot">&lt;-</span> tbl <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(year, month) <span class="sc">%&gt;%</span> </span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">n =</span> <span class="fu">sum</span>(flight)) <span class="sc">%&gt;%</span> <span class="fu">collect</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Missing values are always removed in SQL aggregation functions.
+Use `na.rm = TRUE` to silence this warning
+This warning is displayed once every 8 hours.</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste0</span>(</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Object size: "</span>, </span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  (<span class="fu">object.size</span>(tbl)<span class="sc">+</span> <span class="fu">object.size</span>(out)) <span class="sc">/</span> <span class="fl">1e6</span>, <span class="st">" MB"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Object size: 0.00988 MB"</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>DBI<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>); <span class="fu">rm</span>(tbl)</span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste0</span>(<span class="st">'time: '</span>, <span class="fu">Sys.time</span>() <span class="sc">-</span> start))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "time: 0.22003698348999"</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="co">#out</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="duckdb" class="level4">
+<h4 class="anchored" data-anchor-id="duckdb">Duckdb</h4>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/rduck_0473ce78b3aecb38aab1cc72ffb3de2f">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>start <span class="ot">=</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>con <span class="ot">=</span> DBI<span class="sc">::</span><span class="fu">dbConnect</span>(duckdb<span class="sc">::</span><span class="fu">duckdb</span>(), <span class="fu">file.path</span>(dir, <span class="st">"db.duckdb"</span>))</span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>tbl <span class="ot">=</span> <span class="fu">tbl</span>(con, <span class="st">"dat"</span>)</span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a>out <span class="ot">&lt;-</span> tbl <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(year, month) <span class="sc">%&gt;%</span> </span>
+<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">n =</span> <span class="fu">sum</span>(flight)) <span class="sc">%&gt;%</span> <span class="fu">collect</span>()</span>
+<span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-11"><a href="#cb53-11" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste0</span>(</span>
+<span id="cb53-12"><a href="#cb53-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Object size: "</span>, </span>
+<span id="cb53-13"><a href="#cb53-13" aria-hidden="true" tabindex="-1"></a>  (<span class="fu">object.size</span>(tbl)<span class="sc">+</span> <span class="fu">object.size</span>(out)) <span class="sc">/</span> <span class="fl">1e6</span>, <span class="st">" MB"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Object size: 0.041512 MB"</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>DBI<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>); <span class="fu">rm</span>(tbl)</span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste0</span>(<span class="st">'time: '</span>, <span class="fu">Sys.time</span>() <span class="sc">-</span> start))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "time: 0.160813093185425"</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="co">#out</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="big-matrix" class="level4">
+<h4 class="anchored" data-anchor-id="big-matrix">Big Matrix</h4>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/unnamed-chunk-4_804458e4bb8e4e4d6d50f6865bfb4a17">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="co">#y &lt;- read.big.matrix("C:\\Users\\Deepanshu\\Documents\\Testing.csv", type = "integer", header=TRUE)</span></span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a><span class="co">#mat = bigmemory::read.big.matrix(file.path(dir, "DT.csv"))</span></span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a><span class="co">#x = bigmemory::as.matrix(mat)</span></span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a><span class="co">#x</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+</section>
+<section id="read-aggregation-lm" class="level3">
+<h3 class="anchored" data-anchor-id="read-aggregation-lm">Read + Aggregation (+ LM?)</h3>
+<p><strong>Aggregation</strong></p>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/unnamed-chunk-5_cfa643d43934daf1127aded05818e2df">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>agg <span class="ot">=</span> dat[, <span class="fu">sum</span>(flight), by<span class="ot">=</span><span class="fu">list</span>(year,month)]</span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>con <span class="ot">=</span> DBI<span class="sc">::</span><span class="fu">dbConnect</span>(RSQLite<span class="sc">::</span><span class="fu">SQLite</span>(), <span class="fu">file.path</span>(dir, <span class="st">"db.sqlite"</span>))</span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a>agg_db <span class="ot">=</span> <span class="fu">tbl</span>(con, <span class="st">"dat"</span>) <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(year, month) <span class="sc">%&gt;%</span> </span>
+<span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">n =</span> <span class="fu">sum</span>(flight)) <span class="sc">%&gt;%</span> <span class="fu">collect</span>()</span>
+<span id="cb59-8"><a href="#cb59-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-9"><a href="#cb59-9" aria-hidden="true" tabindex="-1"></a><span class="co">#print(paste0(</span></span>
+<span id="cb59-10"><a href="#cb59-10" aria-hidden="true" tabindex="-1"></a><span class="co">#  "Object size: ", </span></span>
+<span id="cb59-11"><a href="#cb59-11" aria-hidden="true" tabindex="-1"></a><span class="co">#  (object.size(tbl)+ object.size(out)) / 1e6, " MB"))</span></span>
+<span id="cb59-12"><a href="#cb59-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-13"><a href="#cb59-13" aria-hidden="true" tabindex="-1"></a>DBI<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb59-14"><a href="#cb59-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-15"><a href="#cb59-15" aria-hidden="true" tabindex="-1"></a>agg_db</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 12 × 3
+# Groups:   year [1]
+    year month        n
+   &lt;int&gt; &lt;int&gt;    &lt;int&gt;
+ 1  2013     1 52890721
+ 2  2013     2 48810853
+ 3  2013     3 57768124
+ 4  2013     4 56053113
+ 5  2013     5 57195797
+ 6  2013     6 54655629
+ 7  2013     7 57641910
+ 8  2013     8 57495025
+ 9  2013     9 55871666
+10  2013    10 58016467
+11  2013    11 53495008
+12  2013    12 54202236</code></pre>
+</div>
+</div>
+<p><strong>Linear Regression</strong></p>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/imagg-eval_07a1c8c0893cf9b699e55b8e2fc85b01">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="co">#eval(expr(write.csv2(dat, here("data/flights.csv"), row.names = FALSE))) </span></span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a>files <span class="ot">=</span> <span class="fu">list.files</span>(dir, <span class="at">pattern =</span> <span class="st">"rio"</span>, <span class="at">full.names =</span> T)</span>
+<span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb61-5"><a href="#cb61-5" aria-hidden="true" tabindex="-1"></a>res <span class="ot">=</span> <span class="fu">list</span>()</span>
+<span id="cb61-6"><a href="#cb61-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb61-7"><a href="#cb61-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (file <span class="cf">in</span> files[<span class="fu">which</span>(<span class="sc">!</span><span class="fu">grepl</span>(<span class="st">"db"</span>,files))]){</span>
+<span id="cb61-8"><a href="#cb61-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rm</span>(dat)</span>
+<span id="cb61-9"><a href="#cb61-9" aria-hidden="true" tabindex="-1"></a>  disk <span class="ot">=</span> <span class="fu">file.size</span>(file) <span class="sc">/</span><span class="fl">1e6</span></span>
+<span id="cb61-10"><a href="#cb61-10" aria-hidden="true" tabindex="-1"></a>  t0  <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb61-11"><a href="#cb61-11" aria-hidden="true" tabindex="-1"></a>  dat <span class="ot">&lt;-</span> <span class="fu">import</span>(file, <span class="at">setclass =</span> <span class="st">"data.table"</span>)</span>
+<span id="cb61-12"><a href="#cb61-12" aria-hidden="true" tabindex="-1"></a>  t1  <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb61-13"><a href="#cb61-13" aria-hidden="true" tabindex="-1"></a>  agg <span class="ot">=</span> dat[, <span class="fu">sum</span>(flight), by<span class="ot">=</span><span class="fu">list</span>(year,month)]</span>
+<span id="cb61-14"><a href="#cb61-14" aria-hidden="true" tabindex="-1"></a>  t2  <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb61-15"><a href="#cb61-15" aria-hidden="true" tabindex="-1"></a>  mem <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">object.size</span>(dat)) <span class="sc">/</span> <span class="fl">1e6</span></span>
+<span id="cb61-16"><a href="#cb61-16" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb61-17"><a href="#cb61-17" aria-hidden="true" tabindex="-1"></a>  r <span class="ot">=</span> <span class="fu">list</span>(<span class="at">file =</span> file, <span class="at">time_im =</span> <span class="fu">as.numeric</span>(t1<span class="sc">-</span>t0), <span class="at">time_agg =</span> <span class="fu">as.numeric</span>(t2<span class="sc">-</span>t1), <span class="at">mem =</span> mem, <span class="at">disk =</span> disk)</span>
+<span id="cb61-18"><a href="#cb61-18" aria-hidden="true" tabindex="-1"></a>  res[[<span class="fu">length</span>(res) <span class="sc">+</span> <span class="dv">1</span>]] <span class="ot">=</span> r</span>
+<span id="cb61-19"><a href="#cb61-19" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb61-20"><a href="#cb61-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb61-21"><a href="#cb61-21" aria-hidden="true" tabindex="-1"></a>{ <span class="co"># sqlite</span></span>
+<span id="cb61-22"><a href="#cb61-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rm</span>(dat)</span>
+<span id="cb61-23"><a href="#cb61-23" aria-hidden="true" tabindex="-1"></a>  file <span class="ot">=</span> <span class="fu">file.path</span>(dir, <span class="st">"db.sqlite"</span>)</span>
+<span id="cb61-24"><a href="#cb61-24" aria-hidden="true" tabindex="-1"></a>  disk <span class="ot">=</span> <span class="fu">file.size</span>(file) <span class="sc">/</span><span class="fl">1e6</span></span>
+<span id="cb61-25"><a href="#cb61-25" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb61-26"><a href="#cb61-26" aria-hidden="true" tabindex="-1"></a>  t0  <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb61-27"><a href="#cb61-27" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb61-28"><a href="#cb61-28" aria-hidden="true" tabindex="-1"></a>  con <span class="ot">=</span> DBI<span class="sc">::</span><span class="fu">dbConnect</span>(RSQLite<span class="sc">::</span><span class="fu">SQLite</span>(), file)</span>
+<span id="cb61-29"><a href="#cb61-29" aria-hidden="true" tabindex="-1"></a>  dat <span class="ot">=</span> <span class="fu">tbl</span>(con, <span class="st">"dat"</span>)</span>
+<span id="cb61-30"><a href="#cb61-30" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb61-31"><a href="#cb61-31" aria-hidden="true" tabindex="-1"></a>  t1  <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb61-32"><a href="#cb61-32" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb61-33"><a href="#cb61-33" aria-hidden="true" tabindex="-1"></a>  agg_db <span class="ot">=</span> <span class="fu">tbl</span>(con, <span class="st">"dat"</span>) <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(year, month) <span class="sc">%&gt;%</span> </span>
+<span id="cb61-34"><a href="#cb61-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">n =</span> <span class="fu">sum</span>(flight)) <span class="sc">%&gt;%</span> <span class="fu">collect</span>()</span>
+<span id="cb61-35"><a href="#cb61-35" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb61-36"><a href="#cb61-36" aria-hidden="true" tabindex="-1"></a>  t2  <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb61-37"><a href="#cb61-37" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb61-38"><a href="#cb61-38" aria-hidden="true" tabindex="-1"></a>  DBI<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb61-39"><a href="#cb61-39" aria-hidden="true" tabindex="-1"></a>  mem <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">object.size</span>(dat)) <span class="sc">/</span> <span class="fl">1e6</span></span>
+<span id="cb61-40"><a href="#cb61-40" aria-hidden="true" tabindex="-1"></a>  r <span class="ot">=</span> <span class="fu">list</span>(<span class="at">file =</span> file, <span class="at">time_im =</span> <span class="fu">as.numeric</span>(t1<span class="sc">-</span>t0), <span class="at">time_agg =</span> <span class="fu">as.numeric</span>(t2<span class="sc">-</span>t1), <span class="at">mem =</span> mem, <span class="at">disk =</span> disk)</span>
+<span id="cb61-41"><a href="#cb61-41" aria-hidden="true" tabindex="-1"></a>  res[[<span class="fu">length</span>(res) <span class="sc">+</span> <span class="dv">1</span>]] <span class="ot">=</span> r</span>
+<span id="cb61-42"><a href="#cb61-42" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` has grouped output by "year". You can override using the
+`.groups` argument.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Missing values are always removed in SQL aggregation functions.
+Use `na.rm = TRUE` to silence this warning
+This warning is displayed once every 8 hours.</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a>{ <span class="co"># duckdb</span></span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rm</span>(dat)</span>
+<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>  file <span class="ot">=</span> <span class="fu">file.path</span>(dir, <span class="st">"db.duckdb"</span>)</span>
+<span id="cb64-4"><a href="#cb64-4" aria-hidden="true" tabindex="-1"></a>  disk <span class="ot">=</span> <span class="fu">file.size</span>(file) <span class="sc">/</span> <span class="fl">1e6</span></span>
+<span id="cb64-5"><a href="#cb64-5" aria-hidden="true" tabindex="-1"></a>  t0  <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb64-6"><a href="#cb64-6" aria-hidden="true" tabindex="-1"></a>  con <span class="ot">=</span> DBI<span class="sc">::</span><span class="fu">dbConnect</span>(duckdb<span class="sc">::</span><span class="fu">duckdb</span>(), file)</span>
+<span id="cb64-7"><a href="#cb64-7" aria-hidden="true" tabindex="-1"></a>  dat <span class="ot">=</span> <span class="fu">tbl</span>(con, <span class="st">"dat"</span>)</span>
+<span id="cb64-8"><a href="#cb64-8" aria-hidden="true" tabindex="-1"></a>  t1  <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb64-9"><a href="#cb64-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb64-10"><a href="#cb64-10" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb64-11"><a href="#cb64-11" aria-hidden="true" tabindex="-1"></a>  agg_db <span class="ot">=</span> <span class="fu">tbl</span>(con, <span class="st">"dat"</span>) <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(year, month) <span class="sc">%&gt;%</span> </span>
+<span id="cb64-12"><a href="#cb64-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">n =</span> <span class="fu">sum</span>(flight)) <span class="sc">%&gt;%</span> <span class="fu">collect</span>()</span>
+<span id="cb64-13"><a href="#cb64-13" aria-hidden="true" tabindex="-1"></a>  t2  <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()  </span>
+<span id="cb64-14"><a href="#cb64-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb64-15"><a href="#cb64-15" aria-hidden="true" tabindex="-1"></a>  DBI<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb64-16"><a href="#cb64-16" aria-hidden="true" tabindex="-1"></a>  mem <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">object.size</span>(dat)) <span class="sc">/</span> <span class="fl">1e6</span></span>
+<span id="cb64-17"><a href="#cb64-17" aria-hidden="true" tabindex="-1"></a>  r <span class="ot">=</span> <span class="fu">list</span>(<span class="at">file =</span> file, <span class="at">time_im =</span> <span class="fu">as.numeric</span>(t1<span class="sc">-</span>t0), <span class="at">time_agg =</span> <span class="fu">as.numeric</span>(t2<span class="sc">-</span>t1), <span class="at">mem =</span> mem, <span class="at">disk =</span> disk)</span>
+<span id="cb64-18"><a href="#cb64-18" aria-hidden="true" tabindex="-1"></a>  res[[<span class="fu">length</span>(res) <span class="sc">+</span> <span class="dv">1</span>]] <span class="ot">=</span> r</span>
+<span id="cb64-19"><a href="#cb64-19" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` has grouped output by "year". You can override using the
+`.groups` argument.</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> res <span class="sc">%&gt;%</span> <span class="fu">lapply</span>(as.data.table) <span class="sc">%&gt;%</span> <span class="fu">rbindlist</span>() </span>
+<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>res_im_agg <span class="ot">=</span> res</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/io-speed-disk-imagg_47c937a49e812a24935dfd2502b779e1">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>res <span class="ot">=</span> <span class="fu">inner_join</span>(<span class="fu">rename</span>(res_ex, <span class="at">file =</span> new_files, <span class="at">time_export =</span> time), res_im_agg, <span class="at">by =</span> <span class="st">"file"</span>, <span class="at">suffix =</span> <span class="fu">c</span>(<span class="st">"_export"</span>, <span class="st">""</span>))</span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>res <span class="sc">%&gt;%</span></span>
+<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> time_export, <span class="at">y =</span> time_agg<span class="sc">+</span>time_im, <span class="at">color =</span> disk)) <span class="sc">+</span></span>
+<span id="cb67-5"><a href="#cb67-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb67-6"><a href="#cb67-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text_repel</span>(</span>
+<span id="cb67-7"><a href="#cb67-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">label=</span> res<span class="sc">$</span>out_class, </span>
+<span id="cb67-8"><a href="#cb67-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">nudge_x =</span> <span class="dv">1</span>,</span>
+<span id="cb67-9"><a href="#cb67-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">max.overlaps =</span> <span class="dv">20</span></span>
+<span id="cb67-10"><a href="#cb67-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">#, nudge_y = 1, check_overlap = T</span></span>
+<span id="cb67-11"><a href="#cb67-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Comparison of IO Speed"</span>)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="investigate_file_manipulation_files/figure-html/io-speed-disk-imagg-1.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a>res <span class="sc">%&gt;%</span></span>
+<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> time_export, <span class="at">y =</span> time_im<span class="sc">+</span>time_agg, <span class="at">color =</span> mem)) <span class="sc">+</span></span>
+<span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb68-4"><a href="#cb68-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text_repel</span>(</span>
+<span id="cb68-5"><a href="#cb68-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">label=</span> res<span class="sc">$</span>out_class, </span>
+<span id="cb68-6"><a href="#cb68-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">nudge_x =</span> <span class="dv">1</span>,</span>
+<span id="cb68-7"><a href="#cb68-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">max.overlaps =</span> <span class="dv">20</span></span>
+<span id="cb68-8"><a href="#cb68-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">#, nudge_y = 1, check_overlap = T</span></span>
+<span id="cb68-9"><a href="#cb68-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Comparison of IO Speed"</span>)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="investigate_file_manipulation_files/figure-html/io-speed-disk-imagg-2.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>res <span class="sc">%&gt;%</span> <span class="fu">filter</span>(out_class <span class="sc">!=</span> <span class="st">"xlsx"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> time_export, <span class="at">y =</span> time_agg<span class="sc">+</span>time_im, <span class="at">color =</span> disk)) <span class="sc">+</span></span>
+<span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb69-4"><a href="#cb69-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text_repel</span>(</span>
+<span id="cb69-5"><a href="#cb69-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">label=</span> <span class="fu">filter</span>(res, out_class <span class="sc">!=</span> <span class="st">"xlsx"</span>)<span class="sc">$</span>out_class, </span>
+<span id="cb69-6"><a href="#cb69-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">nudge_x =</span> <span class="dv">1</span>,</span>
+<span id="cb69-7"><a href="#cb69-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">max.overlaps =</span> <span class="dv">20</span></span>
+<span id="cb69-8"><a href="#cb69-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">#, nudge_y = 1, check_overlap = T</span></span>
+<span id="cb69-9"><a href="#cb69-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Comparison of IO Speed"</span>)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="investigate_file_manipulation_files/figure-html/io-speed-disk-imagg-3.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/io-speed-mem-imagg_54e413f01e9185ba249957ef102e5c79">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a>res <span class="sc">%&gt;%</span></span>
+<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> time_export, <span class="at">y =</span> time_im<span class="sc">+</span>time_agg, <span class="at">color =</span> mem)) <span class="sc">+</span></span>
+<span id="cb70-3"><a href="#cb70-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb70-4"><a href="#cb70-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text_repel</span>(</span>
+<span id="cb70-5"><a href="#cb70-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">label=</span> res<span class="sc">$</span>out_class, </span>
+<span id="cb70-6"><a href="#cb70-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">nudge_x =</span> <span class="dv">1</span>,</span>
+<span id="cb70-7"><a href="#cb70-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">max.overlaps =</span> <span class="dv">20</span></span>
+<span id="cb70-8"><a href="#cb70-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">#, nudge_y = 1, check_overlap = T</span></span>
+<span id="cb70-9"><a href="#cb70-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Comparison of IO Speed"</span>)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="investigate_file_manipulation_files/figure-html/io-speed-mem-imagg-1.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>res <span class="sc">%&gt;%</span> <span class="fu">filter</span>(out_class <span class="sc">!=</span> <span class="st">"xlsx"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> time_export, <span class="at">y =</span> time_agg<span class="sc">+</span>time_im, <span class="at">color =</span> mem)) <span class="sc">+</span></span>
+<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text_repel</span>(</span>
+<span id="cb71-5"><a href="#cb71-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">label=</span> <span class="fu">filter</span>(res, out_class <span class="sc">!=</span> <span class="st">"xlsx"</span>)<span class="sc">$</span>out_class, </span>
+<span id="cb71-6"><a href="#cb71-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">nudge_x =</span> <span class="dv">1</span>,</span>
+<span id="cb71-7"><a href="#cb71-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">max.overlaps =</span> <span class="dv">20</span></span>
+<span id="cb71-8"><a href="#cb71-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">#, nudge_y = 1, check_overlap = T</span></span>
+<span id="cb71-9"><a href="#cb71-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Comparison of IO Speed"</span>)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="investigate_file_manipulation_files/figure-html/io-speed-mem-imagg-2.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/time-by-mem_dfab3b3e1b791a504e8aa4bcea07c282">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a>res <span class="sc">%&gt;%</span> <span class="fu">select</span>(out_class, <span class="fu">contains</span>(<span class="st">"time"</span>), mem, disk) <span class="sc">%&gt;%</span> </span>
+<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
+<span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">starts_with</span>(<span class="st">"time_"</span>),</span>
+<span id="cb72-4"><a href="#cb72-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_pattern =</span> <span class="st">"time_?(.*)"</span>,</span>
+<span id="cb72-5"><a href="#cb72-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">"time"</span>, <span class="at">names_to=</span><span class="st">"operation"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb72-6"><a href="#cb72-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">operation =</span> <span class="fu">as.factor</span>(<span class="fu">case_when</span>(</span>
+<span id="cb72-7"><a href="#cb72-7" aria-hidden="true" tabindex="-1"></a>    operation <span class="sc">==</span> <span class="st">"agg"</span> <span class="sc">~</span> <span class="st">"1_aggregation"</span>,</span>
+<span id="cb72-8"><a href="#cb72-8" aria-hidden="true" tabindex="-1"></a>    operation <span class="sc">==</span> <span class="st">"im"</span> <span class="sc">~</span> <span class="st">"2_import"</span>,</span>
+<span id="cb72-9"><a href="#cb72-9" aria-hidden="true" tabindex="-1"></a>    operation <span class="sc">==</span> <span class="st">"export"</span> <span class="sc">~</span> <span class="st">"3_export"</span></span>
+<span id="cb72-10"><a href="#cb72-10" aria-hidden="true" tabindex="-1"></a>  ))</span>
+<span id="cb72-11"><a href="#cb72-11" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb72-12"><a href="#cb72-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span> </span>
+<span id="cb72-13"><a href="#cb72-13" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb72-14"><a href="#cb72-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(out_class <span class="sc">!=</span> <span class="st">"xlsx"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb72-15"><a href="#cb72-15" aria-hidden="true" tabindex="-1"></a>  <span class="co">#{.$operation} %&gt;% levels()</span></span>
+<span id="cb72-16"><a href="#cb72-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb72-17"><a href="#cb72-17" aria-hidden="true" tabindex="-1"></a><span class="co">#%&gt;%</span></span>
+<span id="cb72-18"><a href="#cb72-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(</span>
+<span id="cb72-19"><a href="#cb72-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> operation, </span>
+<span id="cb72-20"><a href="#cb72-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> time, </span>
+<span id="cb72-21"><a href="#cb72-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="fu">reorder</span>(out_class, mem))) <span class="sc">+</span></span>
+<span id="cb72-22"><a href="#cb72-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">position =</span> <span class="st">"stack"</span>, <span class="at">stat =</span> <span class="st">"identity"</span>) <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">90</span>, <span class="at">vjust =</span> <span class="fl">0.5</span>, <span class="at">hjust=</span><span class="dv">1</span>)) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Time consumption"</span>, <span class="at">subtitle =</span> <span class="st">"By increasing memory consumption"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="investigate_file_manipulation_files/figure-html/time-by-mem-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/time-by-disk_f207f7df6d44005a5051ce03f5701090">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>res <span class="sc">%&gt;%</span> <span class="fu">select</span>(out_class, <span class="fu">contains</span>(<span class="st">"time"</span>), mem, disk) <span class="sc">%&gt;%</span> </span>
+<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
+<span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">starts_with</span>(<span class="st">"time_"</span>),</span>
+<span id="cb73-4"><a href="#cb73-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_pattern =</span> <span class="st">"time_?(.*)"</span>,</span>
+<span id="cb73-5"><a href="#cb73-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">"time"</span>, <span class="at">names_to=</span><span class="st">"operation"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb73-6"><a href="#cb73-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">operation =</span> <span class="fu">as.factor</span>(<span class="fu">case_when</span>(</span>
+<span id="cb73-7"><a href="#cb73-7" aria-hidden="true" tabindex="-1"></a>    operation <span class="sc">==</span> <span class="st">"agg"</span> <span class="sc">~</span> <span class="st">"1_aggregation"</span>,</span>
+<span id="cb73-8"><a href="#cb73-8" aria-hidden="true" tabindex="-1"></a>    operation <span class="sc">==</span> <span class="st">"im"</span> <span class="sc">~</span> <span class="st">"2_import"</span>,</span>
+<span id="cb73-9"><a href="#cb73-9" aria-hidden="true" tabindex="-1"></a>    operation <span class="sc">==</span> <span class="st">"export"</span> <span class="sc">~</span> <span class="st">"3_export"</span></span>
+<span id="cb73-10"><a href="#cb73-10" aria-hidden="true" tabindex="-1"></a>  ))</span>
+<span id="cb73-11"><a href="#cb73-11" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb73-12"><a href="#cb73-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span> <span class="co">#{.$operation} %&gt;% levels()</span></span>
+<span id="cb73-13"><a href="#cb73-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb73-14"><a href="#cb73-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb73-15"><a href="#cb73-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(out_class <span class="sc">!=</span> <span class="st">"xlsx"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb73-16"><a href="#cb73-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb73-17"><a href="#cb73-17" aria-hidden="true" tabindex="-1"></a><span class="co">#%&gt;%</span></span>
+<span id="cb73-18"><a href="#cb73-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(</span>
+<span id="cb73-19"><a href="#cb73-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> operation, </span>
+<span id="cb73-20"><a href="#cb73-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> time, </span>
+<span id="cb73-21"><a href="#cb73-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="fu">reorder</span>(out_class, disk))) <span class="sc">+</span></span>
+<span id="cb73-22"><a href="#cb73-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">position =</span> <span class="st">"stack"</span>, <span class="at">stat =</span> <span class="st">"identity"</span>) <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">90</span>, <span class="at">vjust =</span> <span class="fl">0.5</span>, <span class="at">hjust=</span><span class="dv">1</span>)) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Time consumption"</span>, <span class="at">subtitle =</span> <span class="st">"By increasing disk consumption"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="investigate_file_manipulation_files/figure-html/time-by-disk-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="move-files" class="level3">
+<h3 class="anchored" data-anchor-id="move-files">Move files</h3>
+<div class="cell" data-hash="investigate_file_manipulation_cache/html/unnamed-chunk-9_d01dc1626172c0de34ebd12a4253cdf1">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="co"># reset output directory</span></span>
+<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a><span class="fu">unlink</span>(dir, <span class="at">recursive =</span> <span class="cn">TRUE</span>); <span class="fu">dir.create</span>(dir)<span class="co">#; eval_op(cmds[[1]])</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
